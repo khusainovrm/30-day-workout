@@ -32,6 +32,8 @@ export function WorkoutPage() {
   const [finishOpen, setFinishOpen] = useState(false)
   const [countdown, setCountdown] = useState(3)
   const committed = useRef(false)
+  const sessionInitialized = useRef(false)
+  const exiting = useRef(false)
   const completionDuration = useRef(0)
 
   const session = active && active.programId === programId && active.day === dayNumber ? active : null
@@ -47,7 +49,12 @@ export function WorkoutPage() {
   const timedRemaining = workoutItem?.duration ? Math.max(0, workoutItem.duration - elapsedSeconds) : 0
 
   useEffect(() => {
-    if (!program || !day || session) return
+    if (session) {
+      sessionInitialized.current = true
+      return
+    }
+    if (!program || !day || sessionInitialized.current || committed.current || exiting.current) return
+    sessionInitialized.current = true
     setActive({ programId: program.id, day: dayNumber, exerciseIndex: 0, completedExerciseIds: [], state: 'exercise-preview', workoutStartedAt: Date.now(), totalPausedTime: 0 })
   }, [program, day, dayNumber, session, setActive])
 
@@ -158,7 +165,11 @@ export function WorkoutPage() {
     const next = getNextWorkoutState('next-exercise', 'START_NEXT', settings.countdown, settings.autoNext)
     updateActive({ state: next, exerciseStartedAt: next === 'exercise-running' ? Date.now() : undefined, totalPausedTime: 0 })
   }
-  const exit = () => { setActive(null); navigate(`/program/${programId}/day/${dayNumber}`, { replace: true }) }
+  const exit = () => {
+    exiting.current = true
+    setActive(null)
+    navigate(`/program/${programId}/day/${dayNumber}`, { replace: true })
+  }
 
   if (!program || !day) return <Navigate to="/" replace />
   if (!session || !exercise || !workoutItem) {

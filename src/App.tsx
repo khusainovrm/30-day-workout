@@ -25,9 +25,13 @@ function ThemeController() {
 
 function OnboardingGuard() {
   const onboarded = useAppStore(state => state.hasOnboarded)
+  const selectedPrograms = useAppStore(state => state.selectedPrograms)
   const location = useLocation()
   if (!onboarded && location.pathname !== '/onboarding') return <Navigate to="/onboarding" replace />
-  if (onboarded && location.pathname === '/onboarding') return <Navigate to="/" replace />
+  if (onboarded && location.pathname === '/onboarding') {
+    const selectedProgram = Object.values(selectedPrograms)[0]
+    return <Navigate to={selectedProgram ? `/program/${selectedProgram}/day/1` : '/'} replace />
+  }
   return <Routes>
     <Route path="/onboarding" element={<OnboardingPage />} />
     <Route element={<AppShell />}>
