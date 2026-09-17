@@ -1,32 +1,18 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Check, ChevronRight, CirclePause, CirclePlay, Flag, Lightbulb, Play, Trophy, X } from 'lucide-react'
+import { Check, ChevronRight, CirclePause, CirclePlay, Flag, Play, Trophy, X } from 'lucide-react'
 import { Navigate, useNavigate, useParams } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ExercisePreview } from '../components/ExercisePreview'
+import { ExerciseTutorial } from '../components/ExerciseTutorial'
 import { Button, ProgressBar, Sheet } from '../components/ui'
 import { exercises } from '../data/exercises'
 import { getProgram } from '../data/programs'
+import { completeCurrentExercise, getNextWorkoutState } from '../features/workout/transitions'
 import { formatTime, useTimestampTimer } from '../hooks/useTimestampTimer'
 import { audioService } from '../services/audio'
 import { haptics } from '../services/haptics'
 import { wakeLockService } from '../services/wakeLock'
 import { useAppStore } from '../store/useAppStore'
-import type { WorkoutState } from '../types'
-
-type Transition = 'START' | 'COUNTDOWN_DONE' | 'PAUSE' | 'RESUME' | 'COMPLETE' | 'REST_DONE' | 'START_NEXT'
-
-function getNextState(current: WorkoutState, event: Transition, countdownEnabled: boolean, autoNext: boolean): WorkoutState {
-  const machine: Partial<Record<WorkoutState, Partial<Record<Transition, WorkoutState>>>> = {
-    'exercise-preview': { START: countdownEnabled ? 'countdown' : 'exercise-running' },
-    countdown: { COUNTDOWN_DONE: 'exercise-running' },
-    'exercise-running': { PAUSE: 'exercise-paused', COMPLETE: 'exercise-completed' },
-    'exercise-paused': { RESUME: 'exercise-running', COMPLETE: 'exercise-completed' },
-    'exercise-completed': { REST_DONE: autoNext ? (countdownEnabled ? 'countdown' : 'exercise-running') : 'next-exercise' },
-    rest: { REST_DONE: autoNext ? (countdownEnabled ? 'countdown' : 'exercise-running') : 'next-exercise' },
-    'next-exercise': { START_NEXT: countdownEnabled ? 'countdown' : 'exercise-running' }
-  }
-  return machine[current]?.[event] ?? current
-}
 
 export function WorkoutPage() {
   const { programId, day: dayParam } = useParams()
@@ -109,19 +95,23 @@ export function WorkoutPage() {
 
   const advanceAfterExercise = useCallback(() => {
     if (!session || !day || !workoutItem) return
-    const token = `${session.exerciseIndex}:${workoutItem.exerciseId}`
-    const completedExerciseIds = Array.from(new Set([...session.completedExerciseIds, token]))
-    completeExerciseInStore(`${session.programId}:${session.day}`, token)
+    const result = completeCurrentExercise({
+      exerciseIndex: session.exerciseIndex,
+      exerciseId: workoutItem.exerciseId,
+      exerciseCount: day.exercises.length,
+      completedExerciseIds: session.completedExerciseIds
+    })
+    completeExerciseInStore(`${session.programId}:${session.day}`, result.completionToken)
     audioService.play('finish', settings.sound); haptics.complete(settings.haptics)
-    if (session.exerciseIndex >= day.exercises.length - 1) {
-      updateActive({ completedExerciseIds, state: 'workout-completed', pausedAt: undefined })
+    if (result.isWorkoutComplete) {
+      updateActive({ completedExerciseIds: result.completedExerciseIds, state: result.nextState, pausedAt: undefined })
       return
     }
     const restDuration = workoutItem.restDuration ?? settings.restDuration
     updateActive({
-      completedExerciseIds,
-      exerciseIndex: session.exerciseIndex + 1,
-      state: 'rest',
+      completedExerciseIds: result.completedExerciseIds,
+      exerciseIndex: result.nextExerciseIndex,
+      state: result.nextState,
       restStartedAt: Date.now(),
       restDuration,
       exerciseStartedAt: undefined,
@@ -137,7 +127,7 @@ export function WorkoutPage() {
   useEffect(() => {
     if (session?.state !== 'rest') return
     if (restRemaining > 0 && restRemaining <= 3 && restElapsed % 1000 < 250) audioService.play('beep', settings.sound)
-    if (restRemaining === 0 && restElapsed > 500) updateActive({ state: getNextState('rest', 'REST_DONE', settings.countdown, settings.autoNext), restStartedAt: undefined })
+    if (restRemaining === 0 && restElapsed > 500) updateActive({ state: getNextWorkoutState('rest', 'REST_DONE', settings.countdown, settings.autoNext), restStartedAt: undefined })
   }, [restRemaining, restElapsed, session?.state, settings.autoNext, settings.countdown, settings.sound, updateActive])
 
   useEffect(() => {
@@ -151,14 +141,14 @@ export function WorkoutPage() {
 
   const start = () => {
     if (!session || !exercise) return
-    void audioService.unlock(); markViewed(exercise.id)
-    const next = getNextState('exercise-preview', 'START', settings.countdown, settings.autoNext)
+    void audioService.unlock()
+    const next = getNextWorkoutState('exercise-preview', 'START', settings.countdown, settings.autoNext)
     updateActive({ state: next, exerciseStartedAt: next === 'exercise-running' ? Date.now() : undefined, totalPausedTime: 0 })
   }
-  const pause = () => session && updateActive({ state: getNextState('exercise-running', 'PAUSE', settings.countdown, settings.autoNext), pausedAt: Date.now() })
-  const resume = () => session && updateActive({ state: getNextState('exercise-paused', 'RESUME', settings.countdown, settings.autoNext), totalPausedTime: session.totalPausedTime + (Date.now() - (session.pausedAt ?? Date.now())), pausedAt: undefined })
+  const pause = () => session && updateActive({ state: getNextWorkoutState('exercise-running', 'PAUSE', settings.countdown, settings.autoNext), pausedAt: Date.now() })
+  const resume = () => session && updateActive({ state: getNextWorkoutState('exercise-paused', 'RESUME', settings.countdown, settings.autoNext), totalPausedTime: session.totalPausedTime + (Date.now() - (session.pausedAt ?? Date.now())), pausedAt: undefined })
   const startNext = () => {
-    const next = getNextState('next-exercise', 'START_NEXT', settings.countdown, settings.autoNext)
+    const next = getNextWorkoutState('next-exercise', 'START_NEXT', settings.countdown, settings.autoNext)
     updateActive({ state: next, exerciseStartedAt: next === 'exercise-running' ? Date.now() : undefined, totalPausedTime: 0 })
   }
   const exit = () => { setActive(null); navigate(`/program/${programId}/day/${dayNumber}`, { replace: true }) }
@@ -179,7 +169,13 @@ export function WorkoutPage() {
         {session.state === 'exercise-preview' && <motion.section key="preview" initial={{ opacity: 0, x: 15 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }} className="flex flex-1 flex-col pt-6">
           <ExercisePreview images={exercise.images} exerciseName={exercise.name} />
           <div className="mt-5 flex items-start justify-between gap-3"><div><p className="text-sm font-extrabold uppercase tracking-[.12em] text-muted">Следующее упражнение</p><h1 className="mt-1 text-4xl font-black tracking-[-.05em]">{exercise.name}</h1></div><span className="shrink-0 rounded-2xl bg-card px-4 py-3 text-lg font-black">{workoutItem.reps ? `${workoutItem.reps} повт.` : `${workoutItem.duration} сек.`}</span></div>
-          {!compactTutorial ? <div className="mt-6 rounded-2xl bg-card p-4"><h2 className="flex items-center gap-2 font-black"><Lightbulb size={18} />Как выполнять</h2><ol className="mt-3 grid gap-2 text-sm text-muted">{exercise.instructions.map((instruction, index) => <li key={instruction} className="flex gap-3"><b className="text-ink">{index + 1}.</b>{instruction}</li>)}</ol>{exercise.tips?.[0] && <p className="mt-4 border-t border-line pt-3 text-sm"><strong>Совет:</strong> <span className="text-muted">{exercise.tips[0]}</span></p>}</div> : <p className="mt-5 text-sm text-muted">Ты уже видел эту технику. Двигайся плавно и не задерживай дыхание.</p>}
+          <ExerciseTutorial
+            key={exercise.id}
+            exercise={exercise}
+            previouslyViewed={compactTutorial}
+            onViewed={markViewed}
+            onSkip={start}
+          />
           <div className="mt-auto pt-5"><Button onClick={start} className="flex w-full items-center justify-center gap-2"><Play size={19} fill="currentColor" />НАЧАТЬ</Button></div>
         </motion.section>}
 

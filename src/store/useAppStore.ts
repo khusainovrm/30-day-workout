@@ -60,8 +60,8 @@ export const useAppStore = create<AppState>()(
       })),
       completeExercise: (sessionKey, exerciseId) => set(state => ({
         completedExercises: {
-          ...state.completedExercises,
-          [sessionKey]: Array.from(new Set([...(state.completedExercises[sessionKey] ?? []), exerciseId]))
+          ...(state.completedExercises ?? {}),
+          [sessionKey]: Array.from(new Set([...(state.completedExercises?.[sessionKey] ?? []), exerciseId]))
         }
       })),
       completeWorkout: item => set(state => ({
@@ -73,7 +73,7 @@ export const useAppStore = create<AppState>()(
         activeWorkoutSession: null
       })),
       markTutorialViewed: exerciseId => set(state => ({
-        viewedExerciseTutorials: Array.from(new Set([...state.viewedExerciseTutorials, exerciseId]))
+        viewedExerciseTutorials: Array.from(new Set([...(state.viewedExerciseTutorials ?? []), exerciseId]))
       })),
       updateSettings: patch => set(state => ({ settings: { ...state.settings, ...patch } })),
       dismissInstall: () => set({ dismissedInstall: true }),
@@ -90,6 +90,28 @@ export const useAppStore = create<AppState>()(
         const state = persisted as Partial<AppState>
         if (version < 1) return { ...state, version: 1, settings: { ...defaultSettings, ...state.settings } }
         return state as AppState
+      },
+      merge: (persisted, current) => {
+        const saved = persisted as Partial<AppState>
+        const activeWorkoutSession = saved.activeWorkoutSession
+          ? {
+              ...saved.activeWorkoutSession,
+              completedExerciseIds: saved.activeWorkoutSession.completedExerciseIds ?? [],
+              totalPausedTime: saved.activeWorkoutSession.totalPausedTime ?? 0
+            }
+          : null
+        return {
+          ...current,
+          ...saved,
+          version: 1,
+          selectedPrograms: saved.selectedPrograms ?? current.selectedPrograms,
+          completedDays: saved.completedDays ?? current.completedDays,
+          completedExercises: saved.completedExercises ?? current.completedExercises,
+          workoutHistory: saved.workoutHistory ?? current.workoutHistory,
+          viewedExerciseTutorials: saved.viewedExerciseTutorials ?? current.viewedExerciseTutorials,
+          settings: { ...defaultSettings, ...saved.settings },
+          activeWorkoutSession
+        }
       },
       partialize: state => state
     }
