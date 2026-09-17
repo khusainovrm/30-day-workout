@@ -7,7 +7,6 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'prompt',
-      includeAssets: ['icon.svg', 'exercise-figure.svg', 'sounds/*.wav'],
       manifest: {
         name: '30 дней тренировок',
         short_name: '30 дней',
@@ -25,7 +24,8 @@ export default defineConfig({
         ]
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,svg,png,wav,woff2}'],
+        globPatterns: ['**/*.{js,css,html,svg,png,webp,wav,woff2}'],
+        globIgnores: ['exercise-figure.svg'],
         navigateFallback: '/index.html',
         cleanupOutdatedCaches: true
       }

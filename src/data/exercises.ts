@@ -1,4 +1,5 @@
 import type { Category, Exercise } from '../types'
+import exerciseImageManifest from './exercise-images.json'
 
 const details: Record<string, { name: string; category: Category; mode: 'reps' | 'timed'; instructions: string[]; tips: string[]; mistakes: string[] }> = {
   squats: { name: 'Squats', category: 'body', mode: 'reps', instructions: ['Stand with feet shoulder-width apart.', 'Send your hips back and bend your knees.', 'Keep your chest lifted.', 'Drive through your feet to stand.'], tips: ['Keep knees tracking over toes', 'Move with control'], mistakes: ['Knees collapsing inward'] },
@@ -69,9 +70,14 @@ const russianCopy: Record<string, [string, string[], string[], string[]]> = {
 }
 
 export const exercises: Record<string, Exercise> = Object.fromEntries(
-  Object.entries(details).map(([id, item]) => { const localized = russianCopy[id]; return [id, {
+  Object.entries(details).map(([id, item]) => {
+    const localized = russianCopy[id]
+    const images = (exerciseImageManifest as Record<string, string[]>)[id]
+    if (!images || images.length < 2) throw new Error(`Exercise "${id}" must have at least two images`)
+    return [id, {
     id, name: localized[0], category: item.category, mode: item.mode,
-    images: ['/exercise-figure.svg', `/exercise-figure.svg#${id}`],
+    images,
     instructions: localized[1], tips: localized[2], commonMistakes: localized[3]
-  }] })
+  }]
+  })
 )

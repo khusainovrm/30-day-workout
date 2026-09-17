@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { Check, ChevronRight, CirclePause, CirclePlay, Flag, Lightbulb, Play, Trophy, X } from 'lucide-react'
 import { Navigate, useNavigate, useParams } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
+import { ExercisePreview } from '../components/ExercisePreview'
 import { Button, ProgressBar, Sheet } from '../components/ui'
 import { exercises } from '../data/exercises'
 import { getProgram } from '../data/programs'
@@ -51,6 +52,8 @@ export function WorkoutPage() {
   const day = program?.days[dayNumber - 1]
   const workoutItem = session && day ? day.exercises[session.exerciseIndex] : undefined
   const exercise = workoutItem ? exercises[workoutItem.exerciseId] : undefined
+  const nextWorkoutItem = session && day ? day.exercises[session.exerciseIndex + 1] : undefined
+  const nextExerciseImages = nextWorkoutItem ? exercises[nextWorkoutItem.exerciseId]?.images : undefined
   const elapsedMs = useTimestampTimer(session?.exerciseStartedAt, session?.pausedAt, session?.totalPausedTime)
   const elapsedSeconds = Math.floor(elapsedMs / 1000)
   const restElapsed = useTimestampTimer(session?.restStartedAt)
@@ -61,6 +64,14 @@ export function WorkoutPage() {
     if (!program || !day || session) return
     setActive({ programId: program.id, day: dayNumber, exerciseIndex: 0, completedExerciseIds: [], state: 'exercise-preview', workoutStartedAt: Date.now(), totalPausedTime: 0 })
   }, [program, day, dayNumber, session, setActive])
+
+  useEffect(() => {
+    nextExerciseImages?.forEach(source => {
+      const image = new Image()
+      image.decoding = 'async'
+      image.src = source
+    })
+  }, [nextExerciseImages])
 
   useEffect(() => {
     void wakeLockService.acquire(settings.keepAwake)
@@ -166,7 +177,7 @@ export function WorkoutPage() {
     <main className="flex flex-1 flex-col px-5 pb-5">
       <AnimatePresence mode="wait">
         {session.state === 'exercise-preview' && <motion.section key="preview" initial={{ opacity: 0, x: 15 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }} className="flex flex-1 flex-col pt-6">
-          <div className="relative overflow-hidden rounded-[28px] bg-[#e9efcf]"><motion.img key={exercise.id} src={exercise.images[0]} alt={`Техника упражнения «${exercise.name}»`} className="aspect-[4/2.7] w-full object-cover" initial={{ opacity: .35 }} animate={{ opacity: 1 }} /></div>
+          <ExercisePreview images={exercise.images} exerciseName={exercise.name} />
           <div className="mt-5 flex items-start justify-between gap-3"><div><p className="text-sm font-extrabold uppercase tracking-[.12em] text-muted">Следующее упражнение</p><h1 className="mt-1 text-4xl font-black tracking-[-.05em]">{exercise.name}</h1></div><span className="shrink-0 rounded-2xl bg-card px-4 py-3 text-lg font-black">{workoutItem.reps ? `${workoutItem.reps} повт.` : `${workoutItem.duration} сек.`}</span></div>
           {!compactTutorial ? <div className="mt-6 rounded-2xl bg-card p-4"><h2 className="flex items-center gap-2 font-black"><Lightbulb size={18} />Как выполнять</h2><ol className="mt-3 grid gap-2 text-sm text-muted">{exercise.instructions.map((instruction, index) => <li key={instruction} className="flex gap-3"><b className="text-ink">{index + 1}.</b>{instruction}</li>)}</ol>{exercise.tips?.[0] && <p className="mt-4 border-t border-line pt-3 text-sm"><strong>Совет:</strong> <span className="text-muted">{exercise.tips[0]}</span></p>}</div> : <p className="mt-5 text-sm text-muted">Ты уже видел эту технику. Двигайся плавно и не задерживай дыхание.</p>}
           <div className="mt-auto pt-5"><Button onClick={start} className="flex w-full items-center justify-center gap-2"><Play size={19} fill="currentColor" />НАЧАТЬ</Button></div>
