@@ -9,9 +9,10 @@ export default defineConfig({
       registerType: 'prompt',
       includeAssets: ['icon.svg', 'exercise-figure.svg', 'sounds/*.wav'],
       manifest: {
-        name: '30 Day Workout Challenge',
-        short_name: '30 Day Fit',
-        description: 'Simple offline 30-day training plans.',
+        name: '30 дней тренировок',
+        short_name: '30 дней',
+        description: 'Простые 30-дневные программы тренировок, доступные офлайн.',
+        lang: 'ru',
         theme_color: '#10130f',
         background_color: '#f3f2ec',
         display: 'standalone',

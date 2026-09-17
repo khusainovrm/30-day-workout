@@ -21,7 +21,9 @@ class AudioService {
     if (!enabled || !('speechSynthesis' in window)) return
     try {
       window.speechSynthesis.cancel()
-      window.speechSynthesis.speak(new SpeechSynthesisUtterance(`${seconds} seconds`))
+      const utterance = new SpeechSynthesisUtterance(`${seconds} секунд`)
+      utterance.lang = 'ru-RU'
+      window.speechSynthesis.speak(utterance)
     } catch { /* Voice is an optional enhancement. */ }
   }
 

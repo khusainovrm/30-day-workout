@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { ArrowRight, Check, Dumbbell, Sparkles, Target } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { Button } from '../components/ui'
-import { categoryMeta, programs } from '../data/programs'
+import { categoryMeta, difficultyMeta, programs } from '../data/programs'
 import { useAppStore } from '../store/useAppStore'
 import type { Category, Difficulty } from '../types'
 

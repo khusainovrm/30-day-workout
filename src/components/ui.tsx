@@ -22,7 +22,7 @@ export function Sheet({ open, title, children, onClose }: { open: boolean; title
   if (!open) return null
   return <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 px-3" role="dialog" aria-modal="true" aria-labelledby="sheet-title" onMouseDown={onClose}>
     <motion.div initial={{ y: 60, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="mb-safe w-full max-w-app rounded-[28px] bg-surface p-5 shadow-2xl" onMouseDown={event => event.stopPropagation()}>
-      <div className="mb-5 flex items-center justify-between"><h2 id="sheet-title" className="text-xl font-extrabold">{title}</h2><button onClick={onClose} className="grid size-11 place-items-center rounded-full bg-card" aria-label="Close"><X size={20} /></button></div>
+      <div className="mb-5 flex items-center justify-between"><h2 id="sheet-title" className="text-xl font-extrabold">{title}</h2><button onClick={onClose} className="grid size-11 place-items-center rounded-full bg-card" aria-label="Закрыть"><X size={20} /></button></div>
       {children}
     </motion.div>
   </div>
