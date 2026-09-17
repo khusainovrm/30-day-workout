@@ -8,6 +8,7 @@ import { Button, ProgressBar, Sheet } from '../components/ui'
 import { exercises } from '../data/exercises'
 import { getProgram } from '../data/programs'
 import { completeCurrentExercise, getNextWorkoutState } from '../features/workout/transitions'
+import { getExerciseVoiceCue } from '../features/workout/voiceCues'
 import { formatTime, useTimestampTimer } from '../hooks/useTimestampTimer'
 import { audioService } from '../services/audio'
 import { haptics } from '../services/haptics'
@@ -32,7 +33,6 @@ export function WorkoutPage() {
   const [countdown, setCountdown] = useState(3)
   const committed = useRef(false)
   const completionDuration = useRef(0)
-  const voiceMarks = useRef(new Set<string>())
 
   const session = active && active.programId === programId && active.day === dayNumber ? active : null
   const day = program?.days[dayNumber - 1]
@@ -86,12 +86,15 @@ export function WorkoutPage() {
   }, [session?.state, session?.exerciseIndex, settings.haptics, settings.sound, updateActive])
 
   useEffect(() => {
-    if (session?.state !== 'exercise-running' || !workoutItem?.duration || elapsedSeconds <= 0 || elapsedSeconds % 30 !== 0) return
-    const mark = `${session.exerciseIndex}:${elapsedSeconds}`
-    if (voiceMarks.current.has(mark)) return
-    voiceMarks.current.add(mark)
-    audioService.announce(elapsedSeconds, settings.voice)
-  }, [elapsedSeconds, session?.exerciseIndex, session?.state, settings.voice, workoutItem?.duration])
+    if (session?.state !== 'exercise-running' || !workoutItem) return
+    const cue = getExerciseVoiceCue({
+      duration: workoutItem.duration,
+      elapsedSeconds,
+      remainingSeconds: timedRemaining
+    })
+    if (!cue) return
+    audioService.announce(cue, settings.voice, `${session.workoutStartedAt}:${session.exerciseIndex}:${cue}`)
+  }, [elapsedSeconds, session?.exerciseIndex, session?.state, session?.workoutStartedAt, settings.voice, timedRemaining, workoutItem])
 
   const advanceAfterExercise = useCallback(() => {
     if (!session || !day || !workoutItem) return
@@ -127,8 +130,11 @@ export function WorkoutPage() {
   useEffect(() => {
     if (session?.state !== 'rest') return
     if (restRemaining > 0 && restRemaining <= 3 && restElapsed % 1000 < 250) audioService.play('beep', settings.sound)
-    if (restRemaining === 0 && restElapsed > 500) updateActive({ state: getNextWorkoutState('rest', 'REST_DONE', settings.countdown, settings.autoNext), restStartedAt: undefined })
-  }, [restRemaining, restElapsed, session?.state, settings.autoNext, settings.countdown, settings.sound, updateActive])
+    if (restRemaining === 0 && restElapsed > 500) {
+      audioService.announce('rest-finished', settings.voice, `${session.workoutStartedAt}:${session.exerciseIndex}:rest-finished`)
+      updateActive({ state: getNextWorkoutState('rest', 'REST_DONE', settings.countdown, settings.autoNext), restStartedAt: undefined })
+    }
+  }, [restRemaining, restElapsed, session?.exerciseIndex, session?.state, session?.workoutStartedAt, settings.autoNext, settings.countdown, settings.sound, settings.voice, updateActive])
 
   useEffect(() => {
     if (session?.state !== 'workout-completed' || committed.current || !day || !program) return
@@ -137,7 +143,8 @@ export function WorkoutPage() {
     completionDuration.current = duration
     completeWorkout({ id: `${program.id}-${dayNumber}-${Date.now()}`, programId: program.id, day: dayNumber, completedAt: Date.now(), duration, exerciseCount: day.exercises.length })
     audioService.play('complete', settings.sound); haptics.workout(settings.haptics)
-  }, [session?.state, session?.workoutStartedAt, day, program, dayNumber, completeWorkout, settings.haptics, settings.sound])
+    audioService.announce('workout-completed', settings.voice, `${session.workoutStartedAt}:workout-completed`, settings.sound ? 650 : 0)
+  }, [session?.state, session?.workoutStartedAt, day, program, dayNumber, completeWorkout, settings.haptics, settings.sound, settings.voice])
 
   const start = () => {
     if (!session || !exercise) return

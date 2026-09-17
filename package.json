@@ -5,12 +5,14 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "npm run validate:exercise-images && tsc -b && vite build",
+    "build": "npm run validate:exercise-images && npm run validate:voice-assets && tsc -b && vite build && npm run verify:offline-audio",
     "typecheck": "tsc -b --pretty false",
     "lint": "eslint . --max-warnings 0",
     "test": "vitest run",
     "preview": "vite preview",
-    "validate:exercise-images": "node scripts/validate-exercise-images.mjs"
+    "validate:exercise-images": "node scripts/validate-exercise-images.mjs",
+    "validate:voice-assets": "node scripts/validate-voice-assets.mjs",
+    "verify:offline-audio": "node scripts/validate-voice-assets.mjs --dist"
   },
   "dependencies": {
     "framer-motion": "^12.23.12",
