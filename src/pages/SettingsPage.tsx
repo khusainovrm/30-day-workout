@@ -45,11 +45,11 @@ export function SettingsPage() {
             </select></div>
         </SettingsGroup>
         <section className="mb-4 mt-7 rounded-[24px] border border-red-500/20 bg-card p-5">
-            <div className="flex items-center gap-2 text-red-600"><RotateCcw size={20}/><h2
+            <div className="flex items-center gap-2 text-red-600 dark:text-red-400"><RotateCcw size={20}/><h2
                 className="font-black">Сбросить прогресс</h2></div>
             <p className="mt-2 text-sm leading-6 text-muted">Удалить выполненные тренировки,
                 статистику и выбранные планы с этого устройства.</p><Button variant="secondary"
-                                                                            className="mt-4 w-full text-red-600"
+                                                                            className="mt-4 w-full text-red-600 dark:text-red-400"
                                                                             onClick={() => setResetOpen(true)}>СБРОСИТЬ
             ПРОГРЕСС</Button></section>
         <p className="mb-5 text-center text-xs font-semibold text-muted">30 ДНЕЙ · ОФЛАЙН · v1.0</p>

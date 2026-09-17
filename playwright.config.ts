@@ -19,7 +19,18 @@ export default defineConfig({
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure'
   },
-  projects: viewports.map(({ name, viewport }) => ({ name, use: { viewport } })),
+  projects: [
+    ...viewports.map(({ name, viewport }) => ({
+      name,
+      testIgnore: /release-audit\.spec\.ts/,
+      use: { viewport }
+    })),
+    {
+      name: 'release-pwa',
+      testMatch: /release-audit\.spec\.ts/,
+      use: { channel: 'chrome', viewport: { width: 390, height: 844 }, serviceWorkers: 'allow' as const }
+    }
+  ],
   webServer: {
     command: 'npm run preview -- --host 127.0.0.1 --port 4173',
     url: 'http://127.0.0.1:4173',

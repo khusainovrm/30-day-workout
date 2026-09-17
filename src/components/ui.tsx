@@ -12,8 +12,8 @@ export function Button({ children, className = '', variant = 'primary', ...props
   return <button className={`min-h-12 rounded-2xl px-5 font-bold tracking-tight transition active:scale-[.98] disabled:opacity-40 ${styles[variant]} ${className}`} {...props}>{children}</button>
 }
 
-export function ProgressBar({ value, className = '' }: { value: number; className?: string }) {
-  return <div className={`h-2 overflow-hidden rounded-full bg-black/10 ${className}`} role="progressbar" aria-valuenow={value} aria-valuemin={0} aria-valuemax={100}>
+export function ProgressBar({ value, className = '', label = 'Прогресс' }: { value: number; className?: string; label?: string }) {
+  return <div className={`h-2 overflow-hidden rounded-full bg-black/10 ${className}`} role="progressbar" aria-label={label} aria-valuenow={value} aria-valuemin={0} aria-valuemax={100}>
     <motion.div className="h-full rounded-full bg-accent" initial={{ width: 0 }} animate={{ width: `${Math.min(100, Math.max(0, value))}%` }} />
   </div>
 }

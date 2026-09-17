@@ -13,6 +13,8 @@ export default defineConfig({
     VitePWA({
       registerType: 'prompt',
       manifest: {
+        id: '/',
+        scope: '/',
         name: '30 дней тренировок',
         short_name: '30 дней',
         description: 'Простые 30-дневные программы тренировок, доступные офлайн.',
