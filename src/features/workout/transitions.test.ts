@@ -24,6 +24,13 @@ describe('workout state transitions', () => {
     expect(getNextWorkoutState('rest', 'REST_DONE', false, true)).toBe('exercise-running')
   })
 
+  it('moves through completion and explicitly starts the next exercise', () => {
+    expect(getNextWorkoutState('exercise-running', 'COMPLETE', true, false)).toBe('exercise-completed')
+    expect(getNextWorkoutState('exercise-paused', 'COMPLETE', true, false)).toBe('exercise-completed')
+    expect(getNextWorkoutState('exercise-completed', 'REST_DONE', true, false)).toBe('next-exercise')
+    expect(getNextWorkoutState('next-exercise', 'START_NEXT', true, false)).toBe('countdown')
+  })
+
   it('ignores transitions that are invalid for the current state', () => {
     expect(getNextWorkoutState('exercise-preview', 'PAUSE', true, false)).toBe('exercise-preview')
   })

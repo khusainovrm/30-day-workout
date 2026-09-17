@@ -13,7 +13,7 @@ const defaultSettings: Settings = {
   theme: 'system'
 }
 
-interface AppState {
+export interface AppState {
   version: 1
   hasOnboarded: boolean
   selectedPrograms: Partial<Record<Category, string>>
@@ -34,6 +34,35 @@ interface AppState {
   updateSettings: (patch: Partial<Settings>) => void
   dismissInstall: () => void
   resetProgress: () => void
+}
+
+export function migratePersistedAppState(persisted: unknown, version: number) {
+  const state = persisted as Partial<AppState>
+  if (version < 1) return { ...state, version: 1 as const, settings: { ...defaultSettings, ...state.settings } }
+  return state
+}
+
+export function mergePersistedAppState(persisted: unknown, current: AppState): AppState {
+  const saved = persisted as Partial<AppState>
+  const activeWorkoutSession = saved.activeWorkoutSession
+    ? {
+        ...saved.activeWorkoutSession,
+        completedExerciseIds: saved.activeWorkoutSession.completedExerciseIds ?? [],
+        totalPausedTime: saved.activeWorkoutSession.totalPausedTime ?? 0
+      }
+    : null
+  return {
+    ...current,
+    ...saved,
+    version: 1,
+    selectedPrograms: saved.selectedPrograms ?? current.selectedPrograms,
+    completedDays: saved.completedDays ?? current.completedDays,
+    completedExercises: saved.completedExercises ?? current.completedExercises,
+    workoutHistory: saved.workoutHistory ?? current.workoutHistory,
+    viewedExerciseTutorials: saved.viewedExerciseTutorials ?? current.viewedExerciseTutorials,
+    settings: { ...defaultSettings, ...saved.settings },
+    activeWorkoutSession
+  }
 }
 
 export const useAppStore = create<AppState>()(
@@ -86,33 +115,8 @@ export const useAppStore = create<AppState>()(
       name: 'workout-app-state-v1',
       version: 1,
       storage: createJSONStorage(() => localStorage),
-      migrate: (persisted, version) => {
-        const state = persisted as Partial<AppState>
-        if (version < 1) return { ...state, version: 1, settings: { ...defaultSettings, ...state.settings } }
-        return state as AppState
-      },
-      merge: (persisted, current) => {
-        const saved = persisted as Partial<AppState>
-        const activeWorkoutSession = saved.activeWorkoutSession
-          ? {
-              ...saved.activeWorkoutSession,
-              completedExerciseIds: saved.activeWorkoutSession.completedExerciseIds ?? [],
-              totalPausedTime: saved.activeWorkoutSession.totalPausedTime ?? 0
-            }
-          : null
-        return {
-          ...current,
-          ...saved,
-          version: 1,
-          selectedPrograms: saved.selectedPrograms ?? current.selectedPrograms,
-          completedDays: saved.completedDays ?? current.completedDays,
-          completedExercises: saved.completedExercises ?? current.completedExercises,
-          workoutHistory: saved.workoutHistory ?? current.workoutHistory,
-          viewedExerciseTutorials: saved.viewedExerciseTutorials ?? current.viewedExerciseTutorials,
-          settings: { ...defaultSettings, ...saved.settings },
-          activeWorkoutSession
-        }
-      },
+      migrate: migratePersistedAppState,
+      merge: mergePersistedAppState,
       partialize: state => state
     }
   )
