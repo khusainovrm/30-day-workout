@@ -27,6 +27,7 @@ beforeEach(() => {
     completedExercises: {},
     workoutHistory: [],
     activeWorkoutSession: null,
+    viewedExerciseTutorials: [],
     settings: {
       sound: false,
       voice: false,
@@ -130,6 +131,23 @@ describe('workout session restoration', () => {
 
     expect(screen.getByText('Упражнение 2 из 5')).toBeInTheDocument()
     expect(screen.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '20')
+  })
+
+  it('shows the animated preview and technique before starting the next exercise', () => {
+    restoreSession({
+      state: 'next-exercise',
+      exerciseIndex: 1,
+      completedExerciseIds: ['0:lunges']
+    })
+
+    expect(screen.getByRole('img', { name: 'Техника упражнения «Отжимания»' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Как выполнять' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Советы' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Частые ошибки' })).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Пропустить объяснение' }))
+
+    expect(useAppStore.getState().activeWorkoutSession?.state).toBe('countdown')
   })
 
   it('restores the completion screen and clears the session only when returning to the calendar', () => {

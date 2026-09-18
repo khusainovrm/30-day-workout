@@ -224,7 +224,18 @@ export function WorkoutPage() {
 
         {session.state === 'rest' && <motion.section key="rest" initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="flex flex-1 flex-col pt-10 text-center"><span className="mx-auto grid size-14 place-items-center rounded-full bg-accent text-gray-950"><Check size={26} strokeWidth={3} /></span><h1 className="mt-4 text-4xl font-black tracking-[-.05em]">Отлично!</h1><div className="grid flex-1 place-items-center"><div><p className="text-sm font-extrabold uppercase tracking-[.15em] text-muted">Отдых</p><p className="mt-2 font-mono text-[5.4rem] font-black leading-none tracking-[-.08em] tabular-nums">{formatTime(restRemaining)}</p><div className="mx-auto mt-7 rounded-2xl bg-card px-5 py-3 text-left"><p className="text-xs font-bold uppercase text-muted">Дальше</p><p className="font-black">{exercise.name} · {workoutItem.reps ? `${workoutItem.reps} повт.` : `${workoutItem.duration} сек.`}</p></div></div></div><Button variant="secondary" onClick={() => updateActive({ state: settings.autoNext ? (settings.countdown ? 'countdown' : 'exercise-running') : 'next-exercise', restStartedAt: undefined, exerciseStartedAt: settings.autoNext && !settings.countdown ? Date.now() : undefined })} className="w-full">ПРОПУСТИТЬ ОТДЫХ</Button></motion.section>}
 
-        {session.state === 'next-exercise' && <motion.section key="next" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-1 flex-col pt-10 text-center"><p className="text-sm font-extrabold uppercase tracking-[.15em] text-muted">Начни, когда будешь готов</p><h1 className="mt-2 text-4xl font-black tracking-[-.05em]">{exercise.name}</h1><div className="grid flex-1 place-items-center"><img src={exercise.images[0]} alt="" className="w-full rounded-[28px]" /></div><Button onClick={startNext} className="flex w-full items-center justify-center gap-2">НАЧАТЬ ДАЛЬШЕ<ChevronRight size={20} /></Button></motion.section>}
+        {session.state === 'next-exercise' && <motion.section key="next" initial={{ opacity: 0, x: 15 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }} className="flex flex-1 flex-col pt-6">
+          <ExercisePreview images={exercise.images} exerciseName={exercise.name} />
+          <div className="mt-5 flex items-start justify-between gap-3"><div><p className="text-sm font-extrabold uppercase tracking-[.12em] text-muted">Следующее упражнение</p><h1 className="mt-1 text-4xl font-black tracking-[-.05em]">{exercise.name}</h1></div><span className="shrink-0 rounded-2xl bg-card px-4 py-3 text-lg font-black">{workoutItem.reps ? `${workoutItem.reps} повт.` : `${workoutItem.duration} сек.`}</span></div>
+          <ExerciseTutorial
+            key={exercise.id}
+            exercise={exercise}
+            previouslyViewed={compactTutorial}
+            onViewed={markViewed}
+            onSkip={startNext}
+          />
+          <div className="mt-auto pt-5"><Button onClick={startNext} className="flex w-full items-center justify-center gap-2">НАЧАТЬ ДАЛЬШЕ<ChevronRight size={20} /></Button></div>
+        </motion.section>}
       </AnimatePresence>
     </main>
     <Sheet open={exitOpen} title="Тренировка не закончена" onClose={() => setExitOpen(false)}><p className="text-muted">Выполненные упражнения сохранены, но этот день не будет завершён.</p><div className="mt-6 grid gap-3"><Button onClick={() => setExitOpen(false)}>ПРОДОЛЖИТЬ ТРЕНИРОВКУ</Button><Button variant="secondary" onClick={exit}>ВЫЙТИ</Button></div></Sheet>
