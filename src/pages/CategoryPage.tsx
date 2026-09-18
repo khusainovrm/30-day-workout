@@ -19,7 +19,7 @@ export function CategoryPage() {
         <div className="mt-4 flex gap-4 text-sm font-semibold text-muted"><span className="flex items-center gap-1.5"><Clock3 size={16} />{meta.minutes}</span><span className="flex items-center gap-1.5"><Gauge size={16} />{meta.intensity}</span></div>
         <div className="mt-5 grid grid-cols-2 gap-3">{(['A', 'B'] as const).map(variant => {
           const program = programs.find(item => item.category === typedCategory && item.difficulty === difficulty && item.variant === variant)!
-          return <Link key={variant} to={`/program/${program.id}`} className="flex min-h-14 items-center justify-between rounded-2xl bg-ink px-4 font-extrabold text-white">План {variant}<ArrowRight size={17} className="text-accent" /></Link>
+          return <Link key={variant} to={`/program/${program.id}`} className="flex min-h-14 items-center justify-between rounded-2xl bg-gray-950 px-4 font-extrabold text-white">План {variant}<ArrowRight size={17} className="text-accent" /></Link>
         })}</div>
       </section>
     })}</div>

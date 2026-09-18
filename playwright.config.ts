@@ -2,6 +2,7 @@ import { defineConfig } from '@playwright/test'
 
 const viewports = [
   { name: 'mobile-360x800', viewport: { width: 360, height: 800 } },
+  { name: 'iphone-8-plus-414x736', viewport: { width: 414, height: 736 } },
   { name: 'mobile-390x844', viewport: { width: 390, height: 844 } },
   { name: 'mobile-430x932', viewport: { width: 430, height: 932 } }
 ]

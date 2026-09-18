@@ -42,6 +42,11 @@ test('keyboard, labels, contrast, focus-visible and non-color indicators', async
   await page.getByLabel('Тема').selectOption('dark')
   await page.waitForTimeout(100)
   await expectNoA11yViolations(page)
+  await page.goto('/category/body')
+  await expect(page.getByRole('link', { name: 'План A' }).first()).toBeVisible()
+  await expect(page.getByRole('link', { name: 'План B' }).first()).toBeVisible()
+  await expectNoA11yViolations(page)
+  await page.goto('/settings')
   await page.getByLabel('Тема').selectOption('light')
 
   await page.goto(`/program/${programId}/day/2`)

@@ -33,6 +33,11 @@ test('onboarding → Day 1 → mixed workout → completion → Day 2 unlock', a
   await startDayOne(page)
   await expect(page.getByRole('navigation', { name: 'Основная навигация' })).toHaveCount(0)
   await expectPrimaryNearBottom(page, page.getByRole('button', { name: 'ГОТОВО' }))
+  const timerBox = await page.getByTestId('workout-timer').boundingBox()
+  const viewport = page.viewportSize()
+  expect(timerBox).not.toBeNull()
+  expect(viewport).not.toBeNull()
+  expect(timerBox!.y + timerBox!.height / 2).toBeLessThan(viewport!.height * .58)
   await expectMobileLayout(page)
   await saveScreenshot(page, testInfo, '03-reps-running')
 

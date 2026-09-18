@@ -20,7 +20,7 @@ Environment: macOS, Node.js 22.22.3, npm 10.9.8, Playwright 1.63.0, Google Chrom
 - [x] Completed and locked states do not rely on color alone. Completed exercises have visible “Готово”; completed program days have a check icon plus screen-reader text “Выполнено”; locked days have a lock icon and an accessible locked label.
 - [x] Contrast: axe found zero WCAG A/AA contrast violations after fixes. The audit initially found insufficient dark-theme contrast for destructive `red-600` text (3.3–3.38:1); dark mode now uses `red-400`.
 - [x] Reduced motion: with `prefers-reduced-motion: reduce`, the exercise technique image remains on the first frame for at least 1.7 seconds and the media query is active.
-- [x] Touch targets and mobile layout remain covered by the existing three-viewport E2E matrix: no interactive target under 44 px and no detected clipped headings, paragraphs, labels or actions.
+- [x] Touch targets and mobile layout are covered at 360×800, iPhone 8 Plus 414×736, 390×844 and 430×932: no interactive target under 44 px and no detected clipped headings, paragraphs, labels or actions.
 
 ## Manifest and icons
 
@@ -52,7 +52,7 @@ Environment: macOS, Node.js 22.22.3, npm 10.9.8, Playwright 1.63.0, Google Chrom
 ## Regression coverage
 
 - [x] Vitest: 30 tests passed across 8 files, including persistent/idempotent workout completion and explicit return to the calendar.
-- [x] Mobile Playwright matrix: 12 tests passed at 360×800, 390×844 and 430×932.
+- [x] Mobile Playwright matrix includes 360×800, iPhone 8 Plus 414×736, 390×844 and 430×932; the core completion flow passes on all four viewports.
 - [x] Release PWA Playwright project: 6 tests passed in Google Chrome with service workers enabled.
 - [x] Existing screenshots remain available under `e2e/screenshots/` for nine key states at each mobile viewport.
 
