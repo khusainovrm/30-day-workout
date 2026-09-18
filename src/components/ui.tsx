@@ -2,11 +2,12 @@ import type { ButtonHTMLAttributes, ReactNode } from 'react'
 import { motion } from 'framer-motion'
 import { X } from 'lucide-react'
 
-export function Button({ children, className = '', variant = 'primary', ...props }: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: 'primary' | 'secondary' | 'danger' | 'ghost' }) {
+export function Button({ children, className = '', variant = 'primary', ...props }: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: 'primary' | 'accent' | 'secondary' | 'danger' | 'ghost' }) {
   const styles = {
-    primary: 'bg-ink text-white shadow-[0_8px_24px_rgba(16,19,15,.18)]',
+    primary: 'bg-action text-action-content shadow-[0_8px_24px_rgba(16,19,15,.18)]',
+    accent: 'bg-accent text-accent-content shadow-[0_8px_24px_rgba(16,19,15,.18)]',
     secondary: 'bg-card text-ink border border-line',
-    danger: 'bg-red-600 text-white',
+    danger: 'bg-red-700 text-white',
     ghost: 'bg-transparent text-ink'
   }
   return <button className={`min-h-12 rounded-2xl px-5 font-bold tracking-tight transition active:scale-[.98] disabled:opacity-40 ${styles[variant]} ${className}`} {...props}>{children}</button>

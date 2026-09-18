@@ -77,11 +77,25 @@ export async function startDayOne(page: Page) {
 }
 
 export async function finishRepsAndStartNext(page: Page) {
+  const position = await page.getByText(/^Упражнение \d+ из \d+$/).textContent()
+  const match = position?.match(/Упражнение (\d+) из (\d+)/)
+  expect(match, `Unexpected workout position: ${position}`).not.toBeNull()
+  const currentExercise = Number(match![1])
+  const exerciseCount = Number(match![2])
+
   await page.getByRole('button', { name: 'ГОТОВО' }).click()
   await expect(page.getByText('Отдых', { exact: true })).toBeVisible()
+  await expect(page.getByText(`Выполнено ${currentExercise} из ${exerciseCount}`)).toBeVisible()
+  await expect(page.getByRole('progressbar')).toHaveAttribute('aria-valuenow', String(currentExercise / exerciseCount * 100))
+
   await page.getByRole('button', { name: 'ПРОПУСТИТЬ ОТДЫХ' }).click()
+  await expect(page.getByText(`Упражнение ${currentExercise + 1} из ${exerciseCount}`)).toBeVisible()
+  await expect(page.getByRole('progressbar')).toHaveAttribute('aria-valuenow', String(currentExercise / exerciseCount * 100))
+
   await page.getByRole('button', { name: 'НАЧАТЬ ДАЛЬШЕ' }).click()
   await expect(page.getByText('Продолжай')).toBeVisible()
+  await expect(page.getByText(`Упражнение ${currentExercise + 1} из ${exerciseCount}`)).toBeVisible()
+  await expect(page.getByRole('progressbar')).toHaveAttribute('aria-valuenow', String(currentExercise / exerciseCount * 100))
 }
 
 export async function finishTimed(page: Page) {

@@ -27,6 +27,7 @@ async function expectNoA11yViolations(page: Page) {
 }
 
 test('keyboard, labels, contrast, focus-visible and non-color indicators', async ({ page }) => {
+  await page.emulateMedia({ colorScheme: 'dark' })
   await page.goto('/onboarding')
   await page.waitForTimeout(1_000)
   await expectNoA11yViolations(page)
@@ -42,6 +43,25 @@ test('keyboard, labels, contrast, focus-visible and non-color indicators', async
   await page.getByLabel('Тема').selectOption('dark')
   await page.waitForTimeout(100)
   await expectNoA11yViolations(page)
+  await page.getByRole('button', { name: 'СБРОСИТЬ ПРОГРЕСС' }).click()
+  await page.waitForTimeout(300)
+  await expectNoA11yViolations(page)
+  await page.getByRole('button', { name: 'ОТМЕНА' }).click()
+
+  await page.goto('/')
+  await expectNoA11yViolations(page)
+  await page.goto(`/program/${programId}`)
+  await expectNoA11yViolations(page)
+  await page.goto(`/program/${programId}/day/2`)
+  await expectNoA11yViolations(page)
+  await page.getByRole('button', { name: 'НАЧАТЬ ТРЕНИРОВКУ' }).click()
+  await page.waitForTimeout(1_000)
+  await expectNoA11yViolations(page)
+  await page.getByRole('button', { name: 'Выйти из тренировки' }).click()
+  await page.waitForTimeout(300)
+  await expectNoA11yViolations(page)
+  await page.getByRole('button', { name: 'ВЫЙТИ', exact: true }).click()
+
   await page.goto('/category/body')
   await expect(page.getByRole('link', { name: 'План A' }).first()).toBeVisible()
   await expect(page.getByRole('link', { name: 'План B' }).first()).toBeVisible()

@@ -21,12 +21,12 @@ export function HomePage() {
   const continueHref = activeWorkoutSession ? `/workout/${activeWorkoutSession.programId}/${activeWorkoutSession.day}` : currentProgram ? `/program/${currentProgram.id}/day/${currentDay}` : '/category/body'
   return <div className="px-5 pt-5">
     <div className="flex items-end justify-between"><div><p className="text-sm font-bold text-muted">СЕГОДНЯ В СЧЁТ</p><h1 className="mt-1 text-4xl font-black tracking-[-.05em]">30-дневный<br />челлендж</h1></div>{offline && <span className="mb-1 flex items-center gap-1 rounded-full bg-card px-3 py-1.5 text-xs font-bold text-muted"><CloudOff size={13} />Офлайн</span>}</div>
-    {currentProgram && <Link to={continueHref} className="mt-7 block overflow-hidden rounded-[28px] bg-ink p-5 text-white shadow-xl">
-      <div className="flex items-start justify-between"><span className="rounded-full bg-accent px-3 py-1 text-xs font-extrabold text-ink">{activeWorkoutSession ? 'ИДЁТ ТРЕНИРОВКА' : 'ДАЛЬШЕ'}</span>{activeWorkoutSession ? <RotateCcw className="text-accent" /> : <Play className="text-accent" fill="currentColor" />}</div>
+    {currentProgram && <Link to={continueHref} className="mt-7 block overflow-hidden rounded-[28px] bg-gray-950 p-5 text-white shadow-xl">
+      <div className="flex items-start justify-between"><span className="rounded-full bg-accent px-3 py-1 text-xs font-extrabold text-accent-content">{activeWorkoutSession ? 'ИДЁТ ТРЕНИРОВКА' : 'ДАЛЬШЕ'}</span>{activeWorkoutSession ? <RotateCcw className="text-accent" /> : <Play className="text-accent" fill="currentColor" />}</div>
       <p className="mt-8 text-sm font-bold text-white/55">{activeWorkoutSession ? `Упражнение ${activeWorkoutSession.exerciseIndex + 1}` : 'Продолжить тренировку'}</p>
       <h2 className="mt-1 text-2xl font-black">День {activeWorkoutSession?.day ?? currentDay} · {categoryMeta[currentProgram.category].title}</h2>
       <p className="mt-1 text-sm text-white/55">{difficultyMeta[currentProgram.difficulty].title} · План {currentProgram.variant}</p>
-      <div className="mt-5 flex min-h-12 items-center justify-between rounded-2xl bg-accent px-5 font-extrabold text-ink"><span>{activeWorkoutSession ? 'ВОЗОБНОВИТЬ' : 'ПРОДОЛЖИТЬ'}</span><ArrowRight size={19} /></div>
+      <div className="mt-5 flex min-h-12 items-center justify-between rounded-2xl bg-accent px-5 font-extrabold text-accent-content"><span>{activeWorkoutSession ? 'ВОЗОБНОВИТЬ' : 'ПРОДОЛЖИТЬ'}</span><ArrowRight size={19} /></div>
     </Link>}
     <div className="mb-4 mt-8 flex items-center justify-between"><h2 className="text-xl font-black">Выбери направление</h2><span className="text-sm font-semibold text-muted">3 программы</span></div>
     <div className="grid gap-4">{(Object.keys(categoryMeta) as Category[]).map((category, index) => {

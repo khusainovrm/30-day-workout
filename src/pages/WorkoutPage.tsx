@@ -185,17 +185,24 @@ export function WorkoutPage() {
   if (!program || !day) return <Navigate to="/" replace />
   if (!session || !exercise || !workoutItem) {
     if (committed.current) return <Completion programId={program.id} day={dayNumber} duration={completionDuration.current} onDone={returnToCalendar} />
-    return <div className="min-h-dvh bg-ink" />
+    return <div className="min-h-dvh bg-gray-950" />
   }
   if (session.state === 'workout-completed') {
     const completedAt = session.workoutCompletedAt ?? Date.now()
     return <Completion programId={program.id} day={dayNumber} duration={Math.max(1, Math.floor((completedAt - session.workoutStartedAt) / 1000))} onDone={returnToCalendar} />
   }
 
-  const progress = ((session.exerciseIndex + (session.state === 'rest' || session.state === 'next-exercise' ? 1 : 0)) / day.exercises.length) * 100
+  // exerciseIndex points at the next exercise as soon as the current one is
+  // completed, including throughout rest. It therefore also equals the number
+  // of completed exercises until the workout completion screen is shown.
+  const completedExerciseCount = Math.min(day.exercises.length, Math.max(0, session.exerciseIndex))
+  const progress = (completedExerciseCount / day.exercises.length) * 100
+  const positionLabel = session.state === 'rest'
+    ? `Выполнено ${completedExerciseCount} из ${day.exercises.length}`
+    : `Упражнение ${session.exerciseIndex + 1} из ${day.exercises.length}`
   const compactTutorial = viewed.includes(exercise.id)
   return <div className="flex min-h-dvh flex-col bg-surface pb-safe pt-safe">
-    <header className="px-5 pt-4"><div className="flex items-center justify-between"><button onClick={() => setExitOpen(true)} className="grid size-12 place-items-center rounded-full bg-card" aria-label="Выйти из тренировки"><X /></button><div className="text-center"><p className="text-xs font-extrabold uppercase tracking-[.12em] text-muted">День {dayNumber}</p><p className="font-black">Упражнение {session.exerciseIndex + 1} из {day.exercises.length}</p></div><span className="size-12" /></div><ProgressBar value={progress} className="mt-4" /></header>
+    <header className="px-5 pt-4"><div className="flex items-center justify-between"><button onClick={() => setExitOpen(true)} className="grid size-12 place-items-center rounded-full bg-card" aria-label="Выйти из тренировки"><X /></button><div className="text-center"><p className="text-xs font-extrabold uppercase tracking-[.12em] text-muted">День {dayNumber}</p><p className="font-black">{positionLabel}</p></div><span className="size-12" /></div><ProgressBar value={progress} className="mt-4" /></header>
     <main className="flex flex-1 flex-col px-5 pb-5">
       <AnimatePresence mode="wait">
         {session.state === 'exercise-preview' && <motion.section key="preview" initial={{ opacity: 0, x: 15 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }} className="flex flex-1 flex-col pt-6">
@@ -228,9 +235,9 @@ export function WorkoutPage() {
 function Completion({ programId, day, duration, onDone }: { programId: string; day: number; duration: number; onDone: () => void }) {
   const program = getProgram(programId)!
   const item = program.days[day - 1]
-  return <div className="relative flex min-h-dvh flex-col overflow-hidden bg-ink p-6 pb-[calc(24px+env(safe-area-inset-bottom))] pt-[calc(32px+env(safe-area-inset-top))] text-white">
+  return <div className="relative flex min-h-dvh flex-col overflow-hidden bg-gray-950 p-6 pb-[calc(24px+env(safe-area-inset-bottom))] pt-[calc(32px+env(safe-area-inset-top))] text-white">
     <div className="pointer-events-none absolute left-1/2 top-20 size-64 -translate-x-1/2 rounded-full bg-accent/20 blur-3xl" />
     <div className="relative flex flex-1 flex-col items-center justify-center text-center"><motion.div initial={{ scale: .6, rotate: -10 }} animate={{ scale: 1, rotate: 0 }} className="grid size-28 place-items-center rounded-[36px] bg-accent text-gray-950 shadow-[0_20px_70px_rgba(190,242,100,.25)]"><Trophy size={58} strokeWidth={2.4} aria-hidden="true" /></motion.div><p className="mt-8 text-sm font-black uppercase tracking-[.18em] text-accent">День {day} завершён</p><h1 className="mt-2 text-5xl font-black tracking-[-.06em]">Ты молодец!</h1><p className="mt-4 max-w-xs text-base font-semibold leading-6 text-white/65">Все упражнения выполнены. Отличная работа — время восстановиться.</p><div className="mt-10 grid w-full grid-cols-3 divide-x divide-white/15 rounded-[24px] border border-white/10 bg-white/5 py-5"><div><b className="block text-xl">{formatTime(duration)}</b><span className="text-xs text-white/50">Тренировка</span></div><div><b className="block text-xl">{item.exercises.length}</b><span className="text-xs text-white/50">Упражнений</span></div><div><b className="block text-xl">+1</b><span className="text-xs text-white/50">День</span></div></div></div>
-    <Button className="relative flex w-full items-center justify-center gap-2 bg-accent text-gray-950" onClick={onDone}><CalendarDays size={20} aria-hidden="true" />ВЕРНУТЬСЯ К КАЛЕНДАРЮ</Button>
+    <Button variant="accent" className="relative flex w-full items-center justify-center gap-2" onClick={onDone}><CalendarDays size={20} aria-hidden="true" />ВЕРНУТЬСЯ К КАЛЕНДАРЮ</Button>
   </div>
 }

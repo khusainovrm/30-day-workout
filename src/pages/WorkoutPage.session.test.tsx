@@ -105,7 +105,31 @@ describe('workout session restoration', () => {
 
     expect(screen.getByText('Отдых')).toBeInTheDocument()
     expect(screen.getByText(formatTime(expectedRemaining))).toBeInTheDocument()
+    expect(screen.getByText('Выполнено 1 из 5')).toBeInTheDocument()
+    expect(screen.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '20')
     expect(useAppStore.getState().activeWorkoutSession?.state).toBe('rest')
+  })
+
+  it('keeps progress monotonic and exercise numbering accurate across rest', () => {
+    restoreSession({ state: 'exercise-running', exerciseIndex: 0 })
+
+    expect(screen.getByText('Упражнение 1 из 5')).toBeInTheDocument()
+    expect(screen.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '0')
+
+    fireEvent.click(screen.getByRole('button', { name: 'ГОТОВО' }))
+
+    expect(screen.getByText('Выполнено 1 из 5')).toBeInTheDocument()
+    expect(screen.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '20')
+
+    fireEvent.click(screen.getByRole('button', { name: 'ПРОПУСТИТЬ ОТДЫХ' }))
+
+    expect(screen.getByText('Упражнение 2 из 5')).toBeInTheDocument()
+    expect(screen.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '20')
+
+    fireEvent.click(screen.getByRole('button', { name: 'НАЧАТЬ ДАЛЬШЕ' }))
+
+    expect(screen.getByText('Упражнение 2 из 5')).toBeInTheDocument()
+    expect(screen.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '20')
   })
 
   it('restores the completion screen and clears the session only when returning to the calendar', () => {
