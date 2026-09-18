@@ -52,12 +52,13 @@ test('onboarding → Day 1 → mixed workout → completion → Day 2 unlock', a
   await page.getByRole('button', { name: 'НАЧАТЬ ДАЛЬШЕ' }).click()
   await finishTimed(page)
 
-  await expect(page.getByRole('heading', { name: /День 1.*завершён/ })).toBeVisible()
-  await expectPrimaryNearBottom(page, page.getByRole('button', { name: 'ГОТОВО' }))
+  await expect(page.getByRole('heading', { name: 'Ты молодец!' })).toBeVisible()
+  await expect(page.getByText('День 1 завершён')).toBeVisible()
+  await expectPrimaryNearBottom(page, page.getByRole('button', { name: 'ВЕРНУТЬСЯ К КАЛЕНДАРЮ' }))
   await expectMobileLayout(page)
   await saveScreenshot(page, testInfo, '05-completion')
 
-  await page.getByRole('button', { name: 'ГОТОВО' }).click()
+  await page.getByRole('button', { name: 'ВЕРНУТЬСЯ К КАЛЕНДАРЮ' }).click()
   await expect(page).toHaveURL(new RegExp(`/program/${programId}$`))
   await expect(page.locator(`a[href="/program/${programId}/day/2"]`)).toBeVisible()
   await expect(page.getByLabel('День 3, заблокирован')).toBeVisible()

@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { cleanup, render, screen } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { formatTime } from '../hooks/useTimestampTimer'
@@ -106,5 +106,21 @@ describe('workout session restoration', () => {
     expect(screen.getByText('Отдых')).toBeInTheDocument()
     expect(screen.getByText(formatTime(expectedRemaining))).toBeInTheDocument()
     expect(useAppStore.getState().activeWorkoutSession?.state).toBe('rest')
+  })
+
+  it('restores the completion screen and clears the session only when returning to the calendar', () => {
+    restoreSession({
+      state: 'workout-completed',
+      exerciseIndex: 4,
+      completedExerciseIds: ['0:lunges', '1:push-ups', '2:glute-bridge', '3:plank', '4:mountain-climbers'],
+      workoutCompletedAt: now - 1_000
+    })
+
+    expect(screen.getByRole('heading', { name: 'Ты молодец!' })).toBeInTheDocument()
+    expect(useAppStore.getState().activeWorkoutSession?.state).toBe('workout-completed')
+
+    fireEvent.click(screen.getByRole('button', { name: 'ВЕРНУТЬСЯ К КАЛЕНДАРЮ' }))
+
+    expect(useAppStore.getState().activeWorkoutSession).toBeNull()
   })
 })

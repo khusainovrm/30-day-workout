@@ -96,3 +96,27 @@ describe('persisted store compatibility', () => {
     expect(state.hasOnboarded).toBe(true)
   })
 })
+
+describe('workout completion', () => {
+  it('keeps the completed session until the user leaves and records history only once', () => {
+    const completedSession = {
+      programId,
+      day: 1,
+      exerciseIndex: 4,
+      completedExerciseIds: ['0:lunges', '1:push-ups', '2:glute-bridge', '3:plank', '4:mountain-climbers'],
+      state: 'workout-completed' as const,
+      workoutStartedAt: 1_000,
+      workoutCompletedAt: 61_000,
+      totalPausedTime: 0
+    }
+    const historyItem = { id: `${programId}-1-1000`, programId, day: 1, completedAt: 61_000, duration: 60, exerciseCount: 5 }
+    useAppStore.setState({ activeWorkoutSession: completedSession })
+
+    useAppStore.getState().completeWorkout(historyItem)
+    useAppStore.getState().completeWorkout(historyItem)
+
+    expect(useAppStore.getState().activeWorkoutSession).toEqual(completedSession)
+    expect(useAppStore.getState().completedDays[programId]).toEqual([1])
+    expect(useAppStore.getState().workoutHistory).toEqual([historyItem])
+  })
+})

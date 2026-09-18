@@ -47,6 +47,7 @@ export interface ActiveWorkoutSession {
   completedExerciseIds: string[]
   state: WorkoutState
   workoutStartedAt: number
+  workoutCompletedAt?: number
   exerciseStartedAt?: number
   pausedAt?: number
   totalPausedTime: number

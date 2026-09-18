@@ -98,8 +98,9 @@ export const useAppStore = create<AppState>()(
           ...state.completedDays,
           [item.programId]: Array.from(new Set([...(state.completedDays[item.programId] ?? []), item.day])).sort((a, b) => a - b)
         },
-        workoutHistory: [...state.workoutHistory, item],
-        activeWorkoutSession: null
+        workoutHistory: state.workoutHistory.some(historyItem => historyItem.id === item.id)
+          ? state.workoutHistory
+          : [...state.workoutHistory, item]
       })),
       markTutorialViewed: exerciseId => set(state => ({
         viewedExerciseTutorials: Array.from(new Set([...(state.viewedExerciseTutorials ?? []), exerciseId]))

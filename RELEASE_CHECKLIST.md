@@ -51,7 +51,7 @@ Environment: macOS, Node.js 22.22.3, npm 10.9.8, Playwright 1.63.0, Google Chrom
 
 ## Regression coverage
 
-- [x] Vitest: 28 tests passed across 8 files.
+- [x] Vitest: 30 tests passed across 8 files, including persistent/idempotent workout completion and explicit return to the calendar.
 - [x] Mobile Playwright matrix: 12 tests passed at 360×800, 390×844 and 430×932.
 - [x] Release PWA Playwright project: 6 tests passed in Google Chrome with service workers enabled.
 - [x] Existing screenshots remain available under `e2e/screenshots/` for nine key states at each mobile viewport.
